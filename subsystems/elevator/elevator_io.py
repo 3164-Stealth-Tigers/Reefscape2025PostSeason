@@ -12,10 +12,11 @@ from subsystems.elevator.elevator_constants import *
 class ElevatorIOData:
     position_meters: float
     velocity_mps: float
+    applied_voltage: float
 
 
 class ElevatorIO(Protocol):
-    inputs = ElevatorIOData(0, 0)
+    inputs = ElevatorIOData(0, 0, 0)
 
     @abc.abstractmethod
     def update_inputs(self):
@@ -54,8 +55,8 @@ class ElevatorIOReal(ElevatorIO):
         leader_config.closedLoop \
             .pid(kP, 0, 0)
         leader_config.softLimit \
-            .forwardSoftLimit(MAXIMUM_CARRIAGE_HEIGHT) \
-            .reverseSoftLimit(MINIMUM_CARRIAGE_HEIGHT) \
+            .forwardSoftLimit(MAXIMUM_CARRIAGE_HEIGHT - OFFSET_FROM_FLOOR) \
+            .reverseSoftLimit(MINIMUM_CARRIAGE_HEIGHT - OFFSET_FROM_FLOOR) \
             .forwardSoftLimitEnabled(LIMITS_ENABLED) \
             .reverseSoftLimitEnabled(LIMITS_ENABLED)
 
@@ -70,10 +71,13 @@ class ElevatorIOReal(ElevatorIO):
             follower_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters
         )
 
+        self.encoder.setPosition(0)
+
     def update_inputs(self):
         self.inputs = ElevatorIOData(
             position_meters=self.encoder.getPosition(),
             velocity_mps=self.encoder.getVelocity(),
+            applied_voltage=self.leader_motor.getAppliedOutput() * self.leader_motor.getBusVoltage(),
         )
 
     def run_position(self, position_meters: float):
