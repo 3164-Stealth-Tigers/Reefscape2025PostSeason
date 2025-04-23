@@ -2,6 +2,7 @@ from lib.conversions import inches_to_meters
 
 LEFT_MOTOR_ID = 9
 RIGHT_MOTOR_ID = 10
+CURRENT_LIMIT = 60
 
 INVERT_MOTORS = False
 

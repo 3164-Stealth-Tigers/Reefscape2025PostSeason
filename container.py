@@ -1,5 +1,4 @@
 from commands2 import Command
-from commands2.button import CommandXboxController
 from wpilib import SendableChooser, SmartDashboard
 
 from commands.elevator import ElevatorGoalHeightCommand
@@ -26,9 +25,6 @@ class RobotContainer:
         return self.auto_chooser.getSelected()
 
     def bind_triggers(self):
-        """self.joystick.b().onTrue(ElevatorGoalHeightCommand(inches_to_meters(45)))
-        self.joystick.a().onTrue(ElevatorGoalHeightCommand(inches_to_meters(55)))
-        self.joystick.x().onTrue(ElevatorGoalHeightCommand(inches_to_meters(30.5)))"""
         self.joystick.level_loading().onTrue(ElevatorGoalHeightCommand(inches_to_meters(30.5)))
         self.joystick.level_1().onTrue(ElevatorGoalHeightCommand(inches_to_meters(42.5)))
         self.joystick.level_2().onTrue(ElevatorGoalHeightCommand(inches_to_meters(55)))

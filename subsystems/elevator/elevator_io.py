@@ -44,7 +44,7 @@ class ElevatorIOReal(ElevatorIO):
 
         global_config \
             .setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake) \
-            .smartCurrentLimit(60)
+            .smartCurrentLimit(CURRENT_LIMIT)
 
         leader_config \
             .apply(global_config) \
