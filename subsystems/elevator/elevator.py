@@ -32,6 +32,9 @@ class Elevator(Subsystem, metaclass=MetaSingletonSubsystem):
         """The current velocity of the elevator in meters/sec."""
         return self.io.inputs.velocity_mps
 
+    def at_goal(self) -> bool:
+        return abs(self.io.inputs.position_meters - self.goal.position) <= inches_to_meters(1)
+
     def periodic(self) -> None:
         # Automatically called every 20ms
 
