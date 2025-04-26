@@ -1,6 +1,7 @@
 from commands2 import Command
 from wpilib import SendableChooser, SmartDashboard
 
+from commands.autos.example_auto import get_example_auto
 from commands.elevator import ElevatorGoalHeightCommand
 from lib.conversions import inches_to_meters
 from oi.schemes import XboxOperator
@@ -10,7 +11,7 @@ from subsystems.elevator.elevator import Elevator
 class RobotContainer:
     def __init__(self):
         self.auto_chooser = SendableChooser()
-        self.auto_chooser.setDefaultOption("Default", Command())
+        self.auto_chooser.setDefaultOption("Default", get_example_auto())
         SmartDashboard.putData("Auto Chooser", self.auto_chooser)
 
         self.joystick = XboxOperator(1)
