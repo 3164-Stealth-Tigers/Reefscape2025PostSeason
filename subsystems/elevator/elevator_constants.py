@@ -18,3 +18,6 @@ MAXIMUM_CARRIAGE_HEIGHT = inches_to_meters(80)
 OFFSET_FROM_FLOOR = inches_to_meters(30.5)
 
 LIMITS_ENABLED = True
+
+CARRIAGE_MASS = 9  # kg
+

@@ -3,6 +3,10 @@ import math
 from dataclasses import dataclass
 from typing import Protocol
 
+from wpilib import RobotController
+from wpilib.simulation import ElevatorSim
+from wpimath.controller import PIDController
+from wpimath.system.plant import DCMotor, LinearSystemId
 import rev
 
 from subsystems.elevator.elevator_constants import *
@@ -85,3 +89,41 @@ class ElevatorIOReal(ElevatorIO):
 
     def stop(self):
         self.leader_motor.stopMotor()
+
+
+class ElevatorIOSim(ElevatorIO):
+    def __init__(self):
+        self.gearbox = DCMotor.NEO(2).withReduction(GEAR_RATIO)
+        self.plant = LinearSystemId.elevatorSystem(self.gearbox, CARRIAGE_MASS, SPROCKET_PITCH_DIAMETER / 2, 1)
+        self.elevator_sim = ElevatorSim(
+            self.plant,
+            self.gearbox,
+            0,
+            MAXIMUM_CARRIAGE_HEIGHT - MINIMUM_CARRIAGE_HEIGHT,
+            True,
+            0,
+        )
+        self.controller = PIDController(kP, 0, 0)
+
+        self.voltage_out = 0
+
+    def update_inputs(self):
+        self.inputs = ElevatorIOData(
+            position_meters=self.elevator_sim.getPosition(),
+            velocity_mps=self.elevator_sim.getVelocity(),
+            applied_voltage=self.voltage_out,
+        )
+
+    def run_position(self, position_meters: float):
+        self.controller.setSetpoint(position_meters)
+
+    def stop(self):
+        pass
+
+    def update(self, dt: float):
+        # Calculate output voltage from PID controller
+        self.voltage_out = self.controller.calculate(self.elevator_sim.getPosition()) * RobotController.getBatteryVoltage()
+        self.elevator_sim.setInputVoltage(self.voltage_out)
+
+        self.elevator_sim.update(dt)
+
