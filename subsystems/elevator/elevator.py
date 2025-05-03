@@ -1,8 +1,8 @@
 from commands2 import Subsystem
-from wpilib import SmartDashboard
+from wpilib import SmartDashboard, RobotBase
 
 from subsystems.elevator.elevator_constants import *
-from subsystems.elevator.elevator_io import ElevatorIOReal
+from subsystems.elevator.elevator_io import ElevatorIOReal, ElevatorIOSim
 from lib.singleton import MetaSingletonSubsystem
 from wpimath.trajectory import TrapezoidProfile
 
@@ -11,7 +11,7 @@ class Elevator(Subsystem, metaclass=MetaSingletonSubsystem):
     def __init__(self):
         super().__init__()
 
-        self.io = ElevatorIOReal()
+        self.io = ElevatorIOReal() if RobotBase.isReal() else ElevatorIOSim()
 
         self.profile = TrapezoidProfile(TrapezoidProfile.Constraints(MAX_VELOCITY, MAX_ACCELERATION))
         self.goal = TrapezoidProfile.State()
@@ -58,3 +58,6 @@ class Elevator(Subsystem, metaclass=MetaSingletonSubsystem):
 
         # Run motors
         self.io.run_position(self.setpoint.position)
+
+    def simulationPeriodic(self) -> None:
+        self.io.update(0.02)
