@@ -9,6 +9,7 @@ from wpimath.controller import PIDController
 from wpimath.system.plant import DCMotor, LinearSystemId
 import rev
 
+from lib.math_extensions import clamp
 from subsystems.elevator.elevator_constants import *
 
 
@@ -106,8 +107,12 @@ class ElevatorIOSim(ElevatorIO):
         self.controller = PIDController(kP, 0, 0)
 
         self.voltage_out = 0
+        self.closed_loop = False
 
     def update_inputs(self):
+        # Update the simulation and PID controller
+        self.update(0.02)
+
         self.inputs = ElevatorIOData(
             position_meters=self.elevator_sim.getPosition(),
             velocity_mps=self.elevator_sim.getVelocity(),
@@ -115,15 +120,19 @@ class ElevatorIOSim(ElevatorIO):
         )
 
     def run_position(self, position_meters: float):
+        self.closed_loop = True
         self.controller.setSetpoint(position_meters)
 
     def stop(self):
-        pass
+        self.closed_loop = False
+        self.voltage_out = 0
 
     def update(self, dt: float):
         # Calculate output voltage from PID controller
-        self.voltage_out = self.controller.calculate(self.elevator_sim.getPosition()) * RobotController.getBatteryVoltage()
-        self.elevator_sim.setInputVoltage(self.voltage_out)
+        if self.closed_loop:
+            percent_out = clamp(self.controller.calculate(self.elevator_sim.getPosition()), -1, 1)
+            self.voltage_out = percent_out * RobotController.getBatteryVoltage()
 
+        self.elevator_sim.setInputVoltage(self.voltage_out)
         self.elevator_sim.update(dt)
 

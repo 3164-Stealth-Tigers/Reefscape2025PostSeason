@@ -58,6 +58,3 @@ class Elevator(Subsystem, metaclass=MetaSingletonSubsystem):
 
         # Run motors
         self.io.run_position(self.setpoint.position)
-
-    def simulationPeriodic(self) -> None:
-        self.io.update(0.02)
