@@ -1,5 +1,5 @@
 from commands2 import Subsystem
-from wpilib import SmartDashboard, RobotBase
+from wpilib import SmartDashboard, RobotBase, DriverStation
 
 from subsystems.elevator.elevator_constants import *
 from subsystems.elevator.elevator_io import ElevatorIOReal, ElevatorIOSim
@@ -16,6 +16,7 @@ class Elevator(Subsystem, metaclass=MetaSingletonSubsystem):
         self.profile = TrapezoidProfile(TrapezoidProfile.Constraints(MAX_VELOCITY, MAX_ACCELERATION))
         self.goal = TrapezoidProfile.State()
         self.setpoint = TrapezoidProfile.State()
+        self.safety_stopped = False
 
     def set_goal_height(self, height: float):
         """
@@ -23,6 +24,7 @@ class Elevator(Subsystem, metaclass=MetaSingletonSubsystem):
         :param height: Height above the floor in meters.
         """
         self.goal = TrapezoidProfile.State(height - OFFSET_FROM_FLOOR)
+        self.safety_stopped = False
 
     def get_height(self) -> float:
         """The current height of the elevator in meters above the floor."""
@@ -49,6 +51,10 @@ class Elevator(Subsystem, metaclass=MetaSingletonSubsystem):
         SmartDashboard.putNumber("Elevator/Velocity", self.get_velocity())
         SmartDashboard.putNumber("Elevator/AppliedVoltage", self.io.inputs.applied_voltage)
 
+        # Prevent the elevator from raising by itself after being Disabled --> Enabled
+        if DriverStation.isDisabled():
+            self.safety_stopped = True
+
         # Update setpoint with profile
         should_run_profile = (
                 MINIMUM_CARRIAGE_HEIGHT - OFFSET_FROM_FLOOR <= self.goal.position <= MAXIMUM_CARRIAGE_HEIGHT - OFFSET_FROM_FLOOR
@@ -57,4 +63,7 @@ class Elevator(Subsystem, metaclass=MetaSingletonSubsystem):
             self.setpoint = self.profile.calculate(0.02, self.setpoint, self.goal)
 
         # Run motors
-        self.io.run_position(self.setpoint.position)
+        if self.safety_stopped:
+            self.io.stop()
+        else:
+            self.io.run_position(self.setpoint.position)
