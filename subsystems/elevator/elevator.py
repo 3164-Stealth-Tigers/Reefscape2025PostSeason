@@ -50,6 +50,7 @@ class Elevator(Subsystem, metaclass=MetaSingletonSubsystem):
         SmartDashboard.putNumber("Elevator/PositionWithOffset", self.get_height())
         SmartDashboard.putNumber("Elevator/Velocity", self.get_velocity())
         SmartDashboard.putNumber("Elevator/AppliedVoltage", self.io.inputs.applied_voltage)
+        SmartDashboard.putBoolean("Elevator/AtGoal", self.at_goal())
 
         # Prevent the elevator from raising by itself after being Disabled --> Enabled
         if DriverStation.isDisabled():
